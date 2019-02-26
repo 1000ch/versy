@@ -1,4 +1,3 @@
-const package = require('./package');
 const minimist = require('minimist');
 const execa = require('execa');
 const Listr = require('listr');
@@ -11,7 +10,7 @@ const argv = minimist(process.argv.slice(2), {
 });
 
 if (argv.v || argv.version) {
-  console.log(package.version);
+  console.log(require('./package').version);
   return;
 }
 
@@ -28,20 +27,22 @@ const versions = ['major', 'minor', 'patch'];
   const tasks = new Listr([
     {
       title: 'Bumping version',
-      task: async () => {
-        await execa('npm', ['version', version])
+      task: async (context, task) => {
+        task.output = await execa.stdout('npm', ['version', version]);
+        const package = require(`${process.cwd()}/package`);
+        task.title = `Bumping version (${package.version})`;
       }
     },
     {
       title: 'Pushing updates',
-      task: async () => {
-        await execa('git', ['push']);
+      task: async (context, task) => {
+        task.output = await execa.stdout('git', ['push']);
       }
     },
     {
       title: 'Pushing tags',
-      task: async () => {
-        await execa('git', ['push', '--tags']);
+      task: async (context, task) => {
+        task.output = await execa.stdout('git', ['push', '--tags']);
       }
     }
   ]);
