@@ -33,7 +33,7 @@ const versions = ['major', 'minor', 'patch'];
       }
     },
     {
-      title: 'Pushing update',
+      title: 'Pushing updates',
       task: async () => {
         await execa('git', ['push']);
       }
