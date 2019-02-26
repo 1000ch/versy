@@ -1,3 +1,4 @@
+const { Observable } = require('rxjs');
 const minimist = require('minimist');
 const execa = require('execa');
 const Listr = require('listr');
@@ -28,21 +29,34 @@ const versions = ['major', 'minor', 'patch'];
     {
       title: 'Bumping version',
       task: async (context, task) => {
-        task.output = await execa.stdout('npm', ['version', version]);
-        const package = require(`${process.cwd()}/package`);
-        task.title = `Bumping version (${package.version})`;
+        return new Observable(async observer => {
+          const stdout = await execa.stdout('npm', ['version', version]);
+          observer.next(stdout);
+
+          const package = require(`${process.cwd()}/package`);
+          task.title = `Bumping version (${package.version})`;
+          observer.complete();
+        });
       }
     },
     {
       title: 'Pushing updates',
       task: async (context, task) => {
-        task.output = await execa.stdout('git', ['push']);
+        return new Observable(async observer => {
+          const stdout = await execa.stdout('git', ['push']);
+          observer.next(stdout);
+          observer.complete();
+        });
       }
     },
     {
       title: 'Pushing tags',
       task: async (context, task) => {
-        task.output = await execa.stdout('git', ['push', '--tags']);
+        return new Observable(async observer => {
+          const stdout = await execa.stdout('git', ['push', '--tags']);
+          observer.next(stdout);
+          observer.complete();
+        });
       }
     }
   ]);
